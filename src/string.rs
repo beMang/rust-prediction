@@ -13,3 +13,11 @@ pub fn remove_last_word(str: &String) -> &str {
         None => return ""
     }
 }
+
+pub fn split_sentence(str: &String) -> Vec<&str> {
+    str.split_whitespace().collect()
+}
+
+pub fn format(str: String) -> String {
+    String::from(str.to_lowercase().trim())
+}

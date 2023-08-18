@@ -27,7 +27,7 @@ pub fn get_lines(file_name: &str) -> Vec<String>{
 }
 
 /**
- * Renvoie un vecteur conteznant les phrases d'un fichier
+ * Renvoie un vecteur contenant les phrases d'un fichier
  */
 pub fn get_sentences(file_name: &str) -> Vec<String>{
     let content = read_file(file_name).expect("Failed to read file");
@@ -37,7 +37,9 @@ pub fn get_sentences(file_name: &str) -> Vec<String>{
 
     let mut result: Vec<String> = Vec::new();
     for l in lines {
-        result.push(String::from(l));
+        if !l.is_empty() {
+            result.push(String::from(l));
+        }
     }
     result
 }

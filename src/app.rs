@@ -68,12 +68,12 @@ impl App {
      */
     fn load_sets(&mut self) {
         self.state.loading();
-        self.prediction_tree = singlethreadparser::load_tree_from_files(Self::get_files_to_parse());
+        self.prediction_tree = singlethreadparser::load_tree_from_files(Self::get_files_to_parse("./french/"));
+        singlethreadparser::add_files_to_tree(Self::get_files_to_parse("./tweets/"), &mut self.prediction_tree); //we can add some more data
         self.state.ready();
     }
 
-    fn get_files_to_parse() -> Vec<String> {
-        let dir = "./french/";
+    fn get_files_to_parse(dir: &str) -> Vec<String> {
         let mut files = crate::files::files_in_dir(dir).expect("Failed to read dir");
     
         for f in &mut files {
@@ -83,6 +83,14 @@ impl App {
     }
 
     fn build_central_panel(&mut self, ui: &mut Ui) {
+        match self.input.chars().last() {
+            Some(last) => {
+                if last == ' ' {
+                    //we could try to make a prediction :)
+                }
+            },
+            _ => {}
+        }
         ui.text_edit_multiline(&mut self.input);
 
         ui.label(&self.ouput);
@@ -127,7 +135,9 @@ impl eframe::App for App {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            self.build_central_panel(ui);
+            ui.horizontal_centered(|ui| {
+                self.build_central_panel(ui);
+            })
         });
 
         if self.state == State::Loading {

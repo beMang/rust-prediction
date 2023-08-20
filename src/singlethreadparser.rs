@@ -10,6 +10,12 @@ pub fn load_tree_from_files(files: Vec<String>) -> PredictionTree {
     tree
 }
 
+pub fn add_files_to_tree(files: Vec<String>, tree: &mut PredictionTree) {
+    for file_name in files {
+        load_tree_from_sentences(files::get_sentences(&file_name), tree);
+    }
+}
+
 fn load_tree_from_sentences(sentences: Vec<String>, tree: &mut PredictionTree) {
     for s in sentences {
         load_from_sentence(s, tree);

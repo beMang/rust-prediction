@@ -1,14 +1,13 @@
 use std::collections::HashMap;
-
-use crate::tree::Tree;
+use std::collections::BTreeMap;
 
 pub struct PredictionTree {
-    pub tree: Tree<String, Tree<String, HashMap<String, u32>>>
+    pub tree: BTreeMap<String, BTreeMap<String, HashMap<String, u32>>>
 }
 
 impl PredictionTree {
     pub fn new_empty() -> PredictionTree{
-        return PredictionTree { tree: Tree::new_empty() }
+        return PredictionTree { tree: BTreeMap::new() }
     }
 
     pub fn insert(&mut self, word1: String, word2: String, word3: String) {
@@ -17,7 +16,7 @@ impl PredictionTree {
                 let mut possibility = HashMap::new();
                 possibility.insert(word3, 1 as u32);
 
-                self.tree.insert(word1, Tree::new(word2, possibility));
+                self.tree.insert(word1, BTreeMap::from([(word2, possibility)]));
             },
             Some(second_tree) => {
                 match second_tree.get_mut(&word2) {

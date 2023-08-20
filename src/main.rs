@@ -1,21 +1,25 @@
 use std::io::stdin;
 
+use egui::{RichText, Color32};
+
 use crate::predictiontree::nice_print_of_possibilities;
 
 pub mod files;
 pub mod string;
-pub mod tree;
 pub mod singlethreadparser;
 pub mod predictiontree;
 
-fn get_files_to_parse() -> Vec<String> {
-    let mut files: Vec<String> = Vec::new();
-    
-    for i in 1..209 {
-        files.push(format!("./tweets/part_{}.txt", i));
-    }
+#[cfg(test)]
+mod tests;
 
-    files
+fn get_files_to_parse() -> Vec<String> {
+    let dir = "./tweets/";
+    let mut files = files::files_in_dir(dir).expect("Failed to read dir");
+
+    for f in &mut files {
+        f.insert_str(0, dir);
+    }
+    return files;
 }
 
 fn main() {
@@ -48,51 +52,29 @@ fn main() {
 
         println!("Voulez-vous faire une autre prédiction")
     }
-}
 
-//_____TEST__________
-fn _test() {
-    //TEST TREES
+    let mut counter = 0;
+    
+    let options = eframe::NativeOptions::default();
+    let end_state = eframe::run_simple_native("A little counter", options, move |ctx, _frame| {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.label(RichText::new("Hey this is a title").size(20.2).color(Color32::from_rgb(255, 0, 0)));
+            ui.horizontal(|ui| {
+                if ui.button("-").clicked() {
+                    counter -= 1;
+                }
+                ui.label(counter.to_string());
+                if ui.button("+").clicked() {
+                    counter += 1;
+                }
+            });
+        });
+    });
 
-    println!("Welcome to twitoz but in rust !");
-
-    let mut my_tree = tree::Tree::new("Adrien", 20);
-    my_tree.insert("Victor", 18);
-    my_tree.insert("Adolph", 55);
-
-    println!("{}", my_tree.get(&"bite").unwrap_or(&0));
-
-    let mut binding = 55; 
-    let myref = my_tree.get_mut(&"lul").unwrap_or(&mut binding);
-    println!("Age : {}", myref);
-
-    my_tree.print();
-
-    //TEST STRING
-
-    let example = String::from("Hello my name is adrien and i love pizza");
-    let example2 = String::from("hello");
-    let results = string::last_words(&example, 9).unwrap();
-    let without_last = string::remove_last_word(&example2);
-
-    for i in results {
-        println!("{}", i);
-    }
-
-    println!("{}", without_last);
-
-
-    // TEST FILES
-    let file_test = false;
-
-    if file_test {
-        let files = get_files_to_parse();
-
-        for file_name in files {
-            let sentences = files::get_sentences(file_name.as_str());
-            for i in sentences {
-                println!("{}", i);
-            }
-        }
+    match end_state {
+        Err(e) => {
+            println!("Erreur while running : {}", e.to_string())
+        },
+        _ => {}
     }
 }

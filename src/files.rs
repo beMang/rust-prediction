@@ -52,6 +52,22 @@ pub fn exists(file_name: &str) ->bool {
     path.exists()
 }
 
+/**
+ * Renvoie les fichiers et dossier contenu dans un dossier
+ */
+pub fn files_in_dir(dir_name: &str) -> Option<Vec<String>> {
+    let path: &Path = Path::new(dir_name);
+    if !path.is_dir() {return None};
+
+    let entries = path.read_dir().expect("Called to read_dir faile");
+    let mut result = Vec::new();
+    for i in entries {
+        result.push(i.expect("Error while reading dir").file_name().to_str().expect("Failed conversion").to_string());
+    }
+
+    return Some(result);
+}
+
 pub fn append_file(file_name: &str, content: &str) {
     let mut file = OpenOptions::new()
         .append(true)

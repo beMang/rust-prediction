@@ -1,30 +1,48 @@
-use eframe::Frame;
-use egui::{Color32, RichText, Ui, Vec2};
+use std::fmt;
+
+use egui::{Color32, RichText, Ui};
 
 use crate::{predictiontree::{PredictionTree, nice_print_of_possibilities}, string::last_words, singlethreadparser};
 
+/**
+ * Application state
+ */
 #[derive(PartialEq)]
 pub enum State {
-    Loading(String),
-    Ready(String),
+    Loading,
+    Ready,
     Exit,
 }
 
 impl State {
     fn new() -> State {
-        State::Loading(String::from("Loading..."))
+        State::Loading
     }
 
     pub fn ready(&mut self) {
-        *self = State::Ready(String::from("Ready !"));
+        *self = State::Ready;
     }
 
     pub fn loading(&mut self) {
-        *self = State::Loading(String::from("Loading..."));
+        *self = State::Loading;
     }
 
     pub fn exit(&mut self) {
         *self = State::Exit
+    }
+}
+
+/**
+ * Display trait, qui permet d'avoir la methode to_string
+ */
+impl fmt::Display for State {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = match self {
+            State::Loading => "Loading...",
+            State::Exit => "Exiting...",
+            State::Ready => "Ready !"
+        };
+        write!(f, "{}", value)
     }
 }
 
@@ -45,23 +63,6 @@ impl App {
         };
     }
 
-    pub fn run(mut self) -> Result<(), eframe::Error> {
-        self.load_sets();
-        let mut options = eframe::NativeOptions::default();
-        options.resizable = true;
-        options.drag_and_drop_support = true;
-        options.decorated = true;
-        
-
-        let result = eframe::run_simple_native("rust-prediction", options, move |ctx, frame| {
-            egui::CentralPanel::default().show(ctx, |ui| {
-                ui.set_max_size(Vec2 { x: 300.0, y: 600.0 });
-                self.build_ui(ui, frame);
-            });
-        });
-        result
-    }
-
     /**
      * Fonction chargée de charger la base de donnée
      */
@@ -71,13 +72,17 @@ impl App {
         self.state.ready();
     }
 
-    fn build_ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
-        ui.label(
-            RichText::new("rust-prediction, a better tool than twitoz !")
-                .size(20.2)
-                .color(Color32::from_rgb(255, 50, 50)),
-        );
+    fn get_files_to_parse() -> Vec<String> {
+        let dir = "./french/";
+        let mut files = crate::files::files_in_dir(dir).expect("Failed to read dir");
+    
+        for f in &mut files {
+            f.insert_str(0, dir);
+        }
+        return files;
+    }
 
+    fn build_central_panel(&mut self, ui: &mut Ui) {
         ui.text_edit_multiline(&mut self.input);
 
         ui.label(&self.ouput);
@@ -99,17 +104,34 @@ impl App {
                 },
             }
         }
-
     }
 
-
-    fn get_files_to_parse() -> Vec<String> {
-        let dir = "./french/";
-        let mut files = crate::files::files_in_dir(dir).expect("Failed to read dir");
-    
-        for f in &mut files {
-            f.insert_str(0, dir);
-        }
-        return files;
+    fn build_top_pannel(&mut self, ui: &mut Ui) {
+        ui.horizontal(|ui| {
+            ui.label(
+                RichText::new("rust-prediction, a better tool than twitoz !")
+                    .size(20.2)
+                    .color(Color32::from_rgb(255, 50, 50)),
+            );
+            ui.add_space(20.0);
+            ui.label(format!("State : {}", self.state.to_string()));
+        });
     }
+
 }
+
+impl eframe::App for App {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::TopBottomPanel::top("pannel").show(ctx, |ui| {
+            self.build_top_pannel(ui);
+        });
+
+        egui::CentralPanel::default().show(ctx, |ui| {
+            self.build_central_panel(ui);
+        });
+
+        if self.state == State::Loading {
+            self.load_sets();
+        }
+    }
+ }

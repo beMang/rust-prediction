@@ -54,6 +54,6 @@ pub fn nice_print_of_possibilities(possibilities: &HashMap<String, u32>) {
 
     println!("Possibilités pour cette combinaison :");
     for p in sorted {
-        println!("{} - {}", p.0, *p.1 as f32/total);
+        println!("{} - p={}%", p.0, *p.1 as f32/total*100.0);
     }
 }

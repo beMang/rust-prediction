@@ -58,11 +58,14 @@ pub fn nice_print_of_possibilities(possibilities: &HashMap<String, u32>) -> Stri
 
     let mut result = String::from("Possibilités pour cette combinaison :\n");
     for p in sorted {
-        if limit==0 {
+        if limit == 0 {
             break;
         }
-        result.insert_str(result.len(), format!("{} - p={}% \n", p.0, *p.1 as f32 / total * 100.0).as_str());
-        limit-=1;
+        result.insert_str(
+            result.len(),
+            format!("{} - p={}% \n", p.0, *p.1 as f32 / total * 100.0).as_str(),
+        );
+        limit -= 1;
     }
     result
 }

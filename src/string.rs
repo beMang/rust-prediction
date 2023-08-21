@@ -29,7 +29,7 @@ pub fn format(str: String) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_remove_last_word() {
         let str = String::from("Hello my name is adrien and i love pizza");

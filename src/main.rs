@@ -6,6 +6,7 @@ pub mod files;
 pub mod predictiontree;
 pub mod singlethreadparser;
 pub mod string;
+pub mod config;
 
 fn main() -> Result<(), eframe::Error> {
     let mut options = eframe::NativeOptions::default();

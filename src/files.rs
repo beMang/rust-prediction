@@ -57,14 +57,6 @@ pub fn get_sentences(file_name: &str) -> Vec<String> {
 }
 
 /**
- * Vérifie si un fichier ou un dossier existe bien
- */
-pub fn exists(file_name: &str) -> bool {
-    let path: &Path = Path::new(file_name);
-    path.exists()
-}
-
-/**
  * Renvoie les fichiers et dossier contenu dans un dossier
  */
 pub fn files_in_dir(dir_name: &str) -> Option<Vec<String>> {
@@ -107,6 +99,5 @@ pub fn write_file_truncate(file_name: &str, content: &str) {
         .open(Path::new(file_name))
         .expect("Failed to open file with truncate");
 
-    file.write_all(content.as_bytes())
-        .expect("Failed to write file");
+    file.write_all(content.as_bytes()).expect("Failed to write file");
 }

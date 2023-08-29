@@ -147,7 +147,6 @@ impl eframe::App for App {
     }
 
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        println!("update");
         match &mut self.state {
             State::Loading(handle) => {
                 if handle.is_finished() {

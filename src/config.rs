@@ -1,25 +1,15 @@
 use std::{path::PathBuf, io::Error, fmt::Display};
-
-use serde::ser::SerializeStruct;
+use serde::{Serialize, Deserialize};
 
 use crate::files;
 
+#[derive(Deserialize, Serialize, PartialEq, Debug)]
 pub enum ColorTheme{
     Bright,
     Dark
 }
 
-impl serde::ser::Serialize for ColorTheme {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer {
-        match &self {
-            ColorTheme::Bright => serializer.serialize_unit_variant("ColorTheme", 0, "Bright"),
-            ColorTheme::Dark => serializer.serialize_unit_variant("ColorTheme", 1, "Dark"),
-        }
-    }
-}
-
+#[derive(Deserialize, Serialize, PartialEq, Debug)]
 pub struct DataSet {
     name: String,
     directory: PathBuf
@@ -36,17 +26,7 @@ impl DataSet {
     }
 }
 
-impl serde::ser::Serialize for DataSet {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer {
-        let mut state = serializer.serialize_struct("DataSet", 2)?;
-        state.serialize_field("name", &self.name)?;
-        state.serialize_field("directory", &self.directory)?;
-        state.end()
-    }
-}
-
+#[derive(Deserialize, Serialize)]
 pub struct Config {
     datasets: Vec<DataSet>,
     theme: ColorTheme
@@ -64,19 +44,8 @@ impl Config {
 
     pub fn load(name: &str) -> Result<Config, Error> {
         let content = files::read_file(name)?;
-        println!("{}", content);
-        todo!();
-    }
-}
-
-impl serde::ser::Serialize for Config {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer {
-        let mut state = serializer.serialize_struct("Config", 2)?;
-        state.serialize_field("datasets", &self.datasets)?;
-        state.serialize_field("theme", &self.theme)?;
-        state.end()
+        let config: Config = serde_json::from_str(&content)?;
+        Ok(config)
     }
 }
 
@@ -92,18 +61,54 @@ mod tests {
 
     use super::*;
 
+    struct TestContext {
+        test_file: String
+    }
+
+    impl TestContext {
+        fn new() -> TestContext {
+            TestContext { test_file: String::from("config_test.json") }
+        }
+
+        fn get_basic_config(&self) -> Config {
+            let mut config = Config::new(ColorTheme::Bright);
+            config.datasets.push(DataSet { name: String::from("test"), directory: PathBuf::from(&self.test_file) });
+            config
+        }
+    }
+
+    impl  Drop for TestContext {
+        fn drop(&mut self) {
+            let path = Path::new(self.test_file.as_str());
+
+            if path.exists() {
+                std::fs::remove_file(path).expect("Unable to remove the file");
+            }
+        }
+    }
+    
+    #[serial_test::serial] //serial to avoid parallel acess :)
     #[test]
     fn test_write_a_simple_config() {
-        let test_file = "config.json";
-        let conf = Config::new(ColorTheme::Bright);
-        conf.save(test_file);
+        let context = TestContext::new();
+        let conf = context.get_basic_config();
+        conf.save(&context.test_file);
         println!("{}", &conf);
 
-        let path = Path::new(test_file);
+        let path = Path::new(&context.test_file);
         assert!(path.exists());
+    }
 
-        if path.exists() {
-            std::fs::remove_file(path).expect("Unable to remove the file");
-        }
+    #[serial_test::serial]
+    #[test]
+    fn test_read_a_simple_config() {
+        let context = TestContext::new();
+        let conf = context.get_basic_config();
+        conf.save(&context.test_file);
+        
+        let save_conf = Config::load(&context.test_file).unwrap();
+
+        assert_eq!(conf.datasets, save_conf.datasets);
+        assert_eq!(conf.theme, save_conf.theme);
     }
 }
